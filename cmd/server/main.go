@@ -57,7 +57,7 @@ func main() {
 	}))
 
 	app.Post("/tasks", presentHandler.CreateTask)
-	//app.Post("/tasks/:task_id/files", presentHandler.AddFilesToTask)
+	app.Get("/tasks/:id", presentHandler.GetTask)
 
 	observer.GetLogger().Info().Msg("Starting app")
 	err = app.Listen(fmt.Sprintf(":%s", cfg.API.Port))

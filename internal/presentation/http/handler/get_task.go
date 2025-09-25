@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *PresentHandler) CreateTask(ctx *fiber.Ctx) error {
+func (h *PresentHandler) GetTask(ctx *fiber.Ctx) error {
 	var bodyReq request.AddTaskRequest
 	if err := ctx.BodyParser(&bodyReq); err != nil {
 		h.observer.Logger.Trace().Err(err).Msg("failed to parse body request")
