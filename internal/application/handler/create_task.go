@@ -41,7 +41,6 @@ func (h *AppHandler) CreateTask(
 
 	for _, file := range cmd.Files {
 		file := file
-
 		g.Go(func() error {
 			valid, parsedLink := IsValidURL(file.Link)
 			if !valid {

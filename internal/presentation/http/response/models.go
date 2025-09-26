@@ -36,6 +36,11 @@ type FileResponse struct {
 	EndedAt      *time.Time `json:"ended_at,omitempty"`
 }
 
+type GetTaskArchiveResponse struct {
+	Status  *string `json:"status,omitempty"`
+	Message *string `json:"message,omitempty"`
+}
+
 type FileErrorResponse struct {
 	Link string `json:"link"`
 	Err  error  `json:"error"`

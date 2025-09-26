@@ -29,6 +29,34 @@ func (repo *FileRepositoryImpl) CreateFile(
 	return nil
 }
 
+func (repo *FileRepositoryImpl) GetFiles(
+	ctx context.Context,
+	ids []model.ID,
+) (
+	[]*model.TaskFile,
+	[]model.ID,
+	error,
+) {
+	var foundFiles []*model.TaskFile
+	var notFoundIDs []model.ID
+
+	for _, id := range ids {
+		if val, ok := repo.files.Load(id); ok {
+			if file, ok := val.(*model.TaskFile); ok {
+				foundFiles = append(foundFiles, file)
+			} else {
+				repo.observer.Logger.Error().
+					Msgf("invalid type stored in files map for file id: %v", id)
+				notFoundIDs = append(notFoundIDs, id)
+			}
+		} else {
+			notFoundIDs = append(notFoundIDs, id)
+		}
+	}
+
+	return foundFiles, notFoundIDs, nil
+}
+
 func (repo *FileRepositoryImpl) PrintAllFiles() {
 	repo.files.Range(func(key, value any) bool {
 		file, ok := value.(*model.TaskFile)

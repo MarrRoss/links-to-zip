@@ -6,4 +6,5 @@ const (
 	StatusError        = "error"
 	StatusFinished     = "finished"
 	MaxAttemptsForFile = 3
+	BaseTempDir        = "./tmp"
 )

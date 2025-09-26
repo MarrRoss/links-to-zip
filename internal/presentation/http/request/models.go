@@ -1,10 +1,18 @@
 package request
 
-import "workmate_tz/internal/application/handler"
+import (
+	"workmate_tz/internal/application/handler"
+
+	"github.com/google/uuid"
+)
 
 type AddTaskRequest struct {
 	TaskName *string        `json:"task_name,omitempty"`
 	Files    []FilesRequest `json:"files"`
+}
+
+type GetTaskRequest struct {
+	ID uuid.UUID `params:"id" format:"uuid"`
 }
 
 type FilesRequest struct {

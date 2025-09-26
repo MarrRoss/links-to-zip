@@ -57,7 +57,8 @@ func main() {
 	}))
 
 	app.Post("/tasks", presentHandler.CreateTask)
-	app.Get("/tasks/:id", presentHandler.GetTask)
+	app.Get("/tasks/:id/status", presentHandler.GetTaskStatus)
+	app.Get("/tasks/:id/archive", presentHandler.GetTaskArchive)
 
 	observer.GetLogger().Info().Msg("Starting app")
 	err = app.Listen(fmt.Sprintf(":%s", cfg.API.Port))
