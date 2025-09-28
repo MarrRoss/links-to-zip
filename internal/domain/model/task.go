@@ -32,6 +32,23 @@ func NewTask(name *string, fileIDs []ID) (*Task, error) {
 	return &newTask, nil
 }
 
+func (task *Task) SetStatus(status string) error {
+	//if task.EndedAt != nil {
+	//	return domain.ErrTaskIsDeleted
+	//}
+	if status != StatusProcessing && status != StatusFinished && status != StatusError {
+		return exception.ErrInvalidTaskStatus
+	}
+	task.Status = status
+
+	now := time.Now()
+	task.UpdatedAt = now
+	if status == StatusFinished || status == StatusError {
+		task.EndedAt = &now
+	}
+	return nil
+}
+
 func (task *Task) SetArchivePath(path string) error {
 	//if task.EndedAt != nil {
 	//	return domain.ErrTaskIsDeleted

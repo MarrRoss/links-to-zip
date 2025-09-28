@@ -44,6 +44,14 @@ func (repo *TaskRepositoryImpl) GetTaskByID(
 	return task, nil
 }
 
+func (repo *TaskRepositoryImpl) UpdateTask(
+	ctx context.Context,
+	task *model.Task,
+) error {
+	repo.tasks.Store(task.ID, task)
+	return nil
+}
+
 func (repo *TaskRepositoryImpl) PrintAllTasks() {
 	repo.tasks.Range(func(key, value any) bool {
 		task, ok := value.(*model.Task)

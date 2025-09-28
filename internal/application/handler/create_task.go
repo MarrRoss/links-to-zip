@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"workmate_tz/internal/domain/exception"
+	exceptionAppl "workmate_tz/internal/application/exception"
+	exceptionDom "workmate_tz/internal/domain/exception"
 	"workmate_tz/internal/domain/model"
 
 	"golang.org/x/sync/errgroup"
@@ -20,24 +21,19 @@ type AddFileCommand struct {
 	Link     string
 }
 
-type FileError struct {
-	Link string
-	Err  error
-}
-
 func (h *AppHandler) CreateTask(
 	ctx context.Context,
 	cmd AddTaskCommand,
 ) (
 	model.ID,
-	[]FileError,
+	[]exceptionAppl.FileError,
 	error,
 ) {
 	var g errgroup.Group
 	var mu sync.Mutex
 
 	filesIDs := make([]model.ID, len(cmd.Files))
-	var fileErrors []FileError
+	var fileErrors []exceptionAppl.FileError
 
 	for _, file := range cmd.Files {
 		file := file
@@ -45,9 +41,9 @@ func (h *AppHandler) CreateTask(
 			valid, parsedLink := IsValidURL(file.Link)
 			if !valid {
 				mu.Lock()
-				fileErrors = append(fileErrors, FileError{
+				fileErrors = append(fileErrors, exceptionAppl.FileError{
 					Link: file.Link,
-					Err:  exception.ErrInvalidURL,
+					Err:  exceptionDom.ErrInvalidURL,
 				})
 				mu.Unlock()
 				h.observer.Logger.Trace().Msgf("invalid url format, link %v", file.Link)
@@ -56,7 +52,7 @@ func (h *AppHandler) CreateTask(
 			domainFile, err := model.NewFile(file.Link, parsedLink)
 			if err != nil {
 				mu.Lock()
-				fileErrors = append(fileErrors, FileError{Link: file.Link, Err: err})
+				fileErrors = append(fileErrors, exceptionAppl.FileError{Link: file.Link, Err: err})
 				mu.Unlock()
 				h.observer.Logger.Trace().Err(err).
 					Msgf("failed to create domain file from link %v", file.Link)
@@ -65,7 +61,7 @@ func (h *AppHandler) CreateTask(
 			err = h.fileStorage.CreateFile(ctx, domainFile)
 			if err != nil {
 				mu.Lock()
-				fileErrors = append(fileErrors, FileError{Link: file.Link, Err: err})
+				fileErrors = append(fileErrors, exceptionAppl.FileError{Link: file.Link, Err: err})
 				mu.Unlock()
 				h.observer.Logger.Trace().Err(err).
 					Msgf("failed to add file to storage, link %v", file.Link)
