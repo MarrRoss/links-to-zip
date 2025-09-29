@@ -20,7 +20,7 @@ func (h *PresentHandler) GetTaskShortStatus(ctx *fiber.Ctx) error {
 	_, status, _, err := h.appHandler.GetTaskShortStatus(ctx.UserContext(), qry)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to get task short status")
-		return ctx.JSON("failed to get task short status")
+		return ctx.Status(fiber.StatusInternalServerError).SendString("failed to get task short status")
 	}
 	return ctx.Status(fiber.StatusOK).JSON(status)
 }

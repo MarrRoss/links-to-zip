@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"io"
 	"workmate_tz/internal/domain/model"
 
 	"github.com/google/uuid"
@@ -24,14 +23,14 @@ func (h *AppHandler) GetTaskArchive(
 	qry GetTaskArchiveQuery,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	id := model.UUIDtoID(qry.TaskID)
 	task, err := h.taskStorage.GetTaskByID(ctx, id)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to get task %v from storage", id)
-		return nil, nil, fmt.Errorf("failed to get task %v from storage: %w", id, err)
+		return nil, "", fmt.Errorf("failed to get task %v from storage: %w", id, err)
 	}
 
 	switch task.Status {

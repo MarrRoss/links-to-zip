@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"io"
 	"workmate_tz/internal/application/handler"
 	"workmate_tz/internal/presentation/http/request"
 
@@ -18,23 +17,16 @@ func (h *PresentHandler) GetTaskArchive(ctx *fiber.Ctx) error {
 	qry := handler.GetTaskArchiveQuery{
 		TaskID: pathReq.ID,
 	}
-	answer, archive, err := h.appHandler.GetTaskArchive(ctx.UserContext(), qry)
+	answer, archivePath, err := h.appHandler.GetTaskArchive(ctx.UserContext(), qry)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to get task archive")
-		return ctx.JSON("failed to get task archive")
+		return ctx.Status(fiber.StatusInternalServerError).SendString("failed to get task archive")
 	}
 
-	if archive != nil {
-		defer func(archive io.ReadCloser) {
-			err := archive.Close()
-			if err != nil {
-				h.observer.Logger.Error().Err(err).Msg("failed to close archive")
-				return
-			}
-		}(archive)
+	if archivePath != "" {
 		ctx.Set("Content-Disposition", "attachment; filename=\"archive.zip\"")
 		ctx.Set("Content-Type", "application/zip")
-		return ctx.SendStream(archive)
+		return ctx.SendFile(archivePath)
 	}
 
 	return ctx.JSON(answer)

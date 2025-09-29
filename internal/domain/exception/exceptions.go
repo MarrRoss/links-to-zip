@@ -12,3 +12,5 @@ var ErrInvalidArchivePath = fmt.Errorf("invalid archive path: %w", ErrDomain)
 var ErrInvalidFileError = fmt.Errorf("invalid file error: %w", ErrDomain)
 var ErrInvalidURL = fmt.Errorf("invalid url format: %w", ErrDomain)
 var ErrInvalidStatus = fmt.Errorf("invalid status: %w", ErrDomain)
+
+var MsgInvalidURL = fmt.Errorf("invalid url format")

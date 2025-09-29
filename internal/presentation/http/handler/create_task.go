@@ -18,7 +18,7 @@ func (h *PresentHandler) CreateTask(ctx *fiber.Ctx) error {
 	id, linksErrs, err := h.appHandler.CreateTask(ctx.UserContext(), cmd)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to create task")
-		return ctx.JSON("failed to create task")
+		return ctx.Status(fiber.StatusInternalServerError).SendString("failed to create task")
 	}
 	return ctx.Status(fiber.StatusOK).JSON(response.NewAddTaskResponse(id, linksErrs))
 }

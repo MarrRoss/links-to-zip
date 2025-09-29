@@ -21,12 +21,12 @@ type TaskFile struct {
 	EndedAt      *time.Time
 }
 
-func NewFile(link string, parsedLink url.URL) (*TaskFile, error) {
+func NewFile(link, name string, parsedLink url.URL) (*TaskFile, error) {
 	if link == "" {
 		return nil, exception.ErrInvalidFileLink
 	}
 	id := NewID()
-	name := CreateFileName(link, parsedLink, id)
+	name = CreateFileName(name, link, parsedLink, id)
 	now := time.Now()
 	newFileLink := TaskFile{
 		ID:           id,
@@ -43,7 +43,10 @@ func NewFile(link string, parsedLink url.URL) (*TaskFile, error) {
 	return &newFileLink, nil
 }
 
-func CreateFileName(link string, parsedLink url.URL, id ID) string {
+func CreateFileName(originalName, link string, parsedLink url.URL, id ID) string {
+	if originalName != "" {
+		return fmt.Sprintf("%s%s", originalName, path.Ext(link))
+	}
 	defaultName := fmt.Sprintf("file-%s%s", id, path.Ext(link))
 	base := path.Base(parsedLink.Path)
 	if base == "/" || base == "." || base == "" {
@@ -51,6 +54,22 @@ func CreateFileName(link string, parsedLink url.URL, id ID) string {
 	}
 	return base
 }
+
+//func CreateFileName(originalName, link string, parsedLink url.URL, id ID) string {
+//	ext := path.Ext(parsedLink.Path)
+//
+//	if originalName != "" {
+//		return fmt.Sprintf("%s%s", originalName, ext)
+//	}
+//
+//	defaultName := fmt.Sprintf("file-%s%s", id, ext)
+//
+//	base := path.Base(parsedLink.Path)
+//	if base == "/" || base == "." || base == "" {
+//		return defaultName
+//	}
+//	return base
+//}
 
 func (file *TaskFile) SetStatus(status string) error {
 	//if file.EndedAt != nil {

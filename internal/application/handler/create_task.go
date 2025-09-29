@@ -49,7 +49,7 @@ func (h *AppHandler) CreateTask(
 				h.observer.Logger.Trace().Msgf("invalid url format, link %v", file.Link)
 				return nil
 			}
-			domainFile, err := model.NewFile(file.Link, parsedLink)
+			domainFile, err := model.NewFile(file.Link, *file.FileName, parsedLink)
 			if err != nil {
 				mu.Lock()
 				fileErrors = append(fileErrors, exceptionAppl.FileError{Link: file.Link, Err: err})
@@ -73,7 +73,9 @@ func (h *AppHandler) CreateTask(
 			return nil
 		})
 	}
-
+	if err := g.Wait(); err != nil {
+		h.observer.Logger.Error().Err(err).Msg("unexpected error in files creating group")
+	}
 	if len(filesIDs) == 0 {
 		h.observer.Logger.Error().Msg("no valid links to create task")
 		return model.ID{}, fileErrors, fmt.Errorf("no valid links to create task")

@@ -9,11 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddTaskResponse struct {
-	ID   uuid.UUID           `json:"id"`
-	Errs []FileErrorResponse `json:"errors"`
-}
-
 type GetTaskShortStatusResponse struct {
 	ID      uuid.UUID  `json:"id"`
 	Status  string     `json:"status"`
@@ -25,7 +20,7 @@ type GetTaskResponse struct {
 	Name      *string        `json:"name"`
 	Status    string         `json:"status"`
 	Files     []FileResponse `json:"files"`
-	Errors    []string       `json:"errors"`
+	Errors    []string       `json:"errors,omitempty"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	EndedAt   *time.Time     `json:"ended_at,omitempty"`
@@ -76,14 +71,14 @@ func NewFileResponse(file handler.GetFile) FileResponse {
 	}
 }
 
-//type GetTaskArchiveResponse struct {
-//	Status  *string `json:"status,omitempty"`
-//	Message *string `json:"message,omitempty"`
-//}
+type AddTaskResponse struct {
+	ID   uuid.UUID           `json:"id"`
+	Errs []FileErrorResponse `json:"errors,omitempty"`
+}
 
 type FileErrorResponse struct {
 	Link string `json:"link"`
-	Err  error  `json:"error"`
+	Err  string `json:"error"`
 }
 
 func NewAddTaskResponse(id model.ID, linksErrs []exception.FileError) *AddTaskResponse {
@@ -91,7 +86,7 @@ func NewAddTaskResponse(id model.ID, linksErrs []exception.FileError) *AddTaskRe
 	for key, value := range linksErrs {
 		errsResp[key] = FileErrorResponse{
 			Link: value.Link,
-			Err:  value.Err,
+			Err:  value.Err.Error(),
 		}
 	}
 	return &AddTaskResponse{

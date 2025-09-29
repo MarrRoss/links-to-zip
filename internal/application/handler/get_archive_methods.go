@@ -22,24 +22,24 @@ func (h *AppHandler) GetArchiveWithStatusCreated(
 	task *model.Task,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	task, err := ChangeTaskStatus(h.taskStorage, ctx, task, model.StatusProcessing)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to change task %v status", task.ID)
-		return nil, nil, err
+		return nil, "", err
 	}
 	task, files, err := ChooseFilesForDownload(h.observer, h.fileStorage, h.taskStorage, ctx, task)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).
 			Msgf("failed to choose files for download for task %v", task.ID)
-		return nil, nil, err
+		return nil, "", err
 	}
 	archiveDir, err := MakeArchiveDir(task.ID)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to create archive dir for task %v", task.ID)
-		return nil, nil, err
+		return nil, "", err
 	}
 	task, downloadedFiles, err := DownloadFilesWithRetry(
 		ctx,
@@ -52,16 +52,16 @@ func (h *AppHandler) GetArchiveWithStatusCreated(
 	)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to download files for task %v", task.ID)
-		return nil, nil, err
+		return nil, "", err
 	}
 	if len(downloadedFiles) == 0 {
 		task, err := ChangeTaskStatus(h.taskStorage, ctx, task, model.StatusError)
 		if err != nil {
 			h.observer.Logger.Error().Err(err).Msgf("failed to change task %v status", task.ID)
-			return nil, nil, err
+			return nil, "", err
 		}
 		h.observer.Logger.Error().Msgf("failed to download any files for task %v", task.ID)
-		return nil, nil, fmt.Errorf("failed to download any files for task %v", task.ID)
+		return nil, "", fmt.Errorf("failed to download any files for task %v", task.ID)
 	}
 	zipPath := filepath.Join(archiveDir, "archive.zip")
 	err = CreateZipArchive(h.observer, zipPath, downloadedFiles)
@@ -69,27 +69,17 @@ func (h *AppHandler) GetArchiveWithStatusCreated(
 		_, err := ChangeTaskStatus(h.taskStorage, ctx, task, model.StatusError)
 		if err != nil {
 			h.observer.Logger.Error().Err(err).Msgf("failed to change task %v status", task.ID)
-			return nil, nil, err
+			return nil, "", err
 		}
 		h.observer.Logger.Error().Err(err).Msgf("failed to create zip for task %v", task.ID)
-		return nil, nil, fmt.Errorf("failed to create zip for task %v: %w", task.ID, err)
-	}
-	zipFile, err := os.Open(zipPath)
-	if err != nil {
-		_, err := ChangeTaskStatus(h.taskStorage, ctx, task, model.StatusError)
-		if err != nil {
-			h.observer.Logger.Error().Err(err).Msgf("failed to change task %v status", task.ID)
-			return nil, nil, err
-		}
-		h.observer.Logger.Error().Err(err).Msgf("failed to open zip file for task %v", task.ID)
-		return nil, nil, fmt.Errorf("failed to open zip file for task %v: %w", task.ID, err)
+		return nil, "", fmt.Errorf("failed to create zip for task %v: %w", task.ID, err)
 	}
 	_, err = ChangeTaskStatus(h.taskStorage, ctx, task, model.StatusFinished)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to change task %v status", task.ID)
-		return nil, nil, err
+		return nil, "", err
 	}
-	return &GetTaskArchive{}, zipFile, nil
+	return &GetTaskArchive{}, zipPath, nil
 }
 
 func (h *AppHandler) GetArchiveWithStatusProcessing(
@@ -97,11 +87,11 @@ func (h *AppHandler) GetArchiveWithStatusProcessing(
 	task *model.Task,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	resp := NewGetTaskArchive(task.ID, model.StatusProcessing, model.MsgTaskProcessing)
-	return resp, nil, nil
+	return resp, "", nil
 }
 
 func (h *AppHandler) GetArchiveWithStatusFinished(
@@ -109,17 +99,17 @@ func (h *AppHandler) GetArchiveWithStatusFinished(
 	task *model.Task,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	archiveDir := filepath.Join(model.BaseTempDir, task.ID.String())
 	zipPath := filepath.Join(archiveDir, "archive.zip")
-	zipFile, err := os.Open(zipPath)
-	if err != nil {
-		h.observer.Logger.Error().Err(err).Msgf("failed to open zip file for task %v", task.ID)
-		return nil, nil, err
-	}
-	return &GetTaskArchive{}, zipFile, nil
+	//zipFile, err := os.Open(zipPath)
+	//if err != nil {
+	//	h.observer.Logger.Error().Err(err).Msgf("failed to open zip file for task %v", task.ID)
+	//	return nil, "", err
+	//}
+	return &GetTaskArchive{}, zipPath, nil
 }
 
 func (h *AppHandler) GetArchiveWithStatusError(
@@ -127,11 +117,11 @@ func (h *AppHandler) GetArchiveWithStatusError(
 	task *model.Task,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	resp := NewGetTaskArchive(task.ID, model.StatusError, model.MsgTaskError)
-	return resp, nil, nil
+	return resp, "", nil
 }
 
 func (h *AppHandler) GetArchiveWithStatusUnknown(
@@ -139,11 +129,11 @@ func (h *AppHandler) GetArchiveWithStatusUnknown(
 	task *model.Task,
 ) (
 	*GetTaskArchive,
-	io.ReadCloser,
+	string,
 	error,
 ) {
 	resp := NewGetTaskArchive(task.ID, task.Status, model.MsgUnknownStatus)
-	return resp, nil, nil
+	return resp, "", nil
 }
 
 func ChangeTaskStatus(

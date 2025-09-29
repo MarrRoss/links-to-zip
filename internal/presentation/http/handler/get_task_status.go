@@ -21,7 +21,7 @@ func (h *PresentHandler) GetTaskStatus(ctx *fiber.Ctx) error {
 	task, files, err := h.appHandler.GetTaskStatus(ctx.UserContext(), qry)
 	if err != nil {
 		h.observer.Logger.Error().Err(err).Msgf("failed to get task status")
-		return ctx.JSON("failed to get task status")
+		return ctx.Status(fiber.StatusInternalServerError).SendString("failed to get task status")
 	}
 	return ctx.Status(fiber.StatusOK).JSON(response.NewGetTaskResponse(task, files))
 }
