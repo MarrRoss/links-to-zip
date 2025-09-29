@@ -242,10 +242,30 @@ func GetTaskFiles(
 	return files, nil
 }
 
+//func MakeArchiveDir(taskID model.ID) (string, error) {
+//	tempDir := filepath.Join(model.BaseTempDir, taskID.String())
+//	if err := os.MkdirAll(tempDir, 0755); err != nil {
+//		return "", fmt.Errorf("failed to create archive dir: %w", err)
+//	}
+//	return tempDir, nil
+//}
+
 func MakeArchiveDir(taskID model.ID) (string, error) {
 	tempDir := filepath.Join(model.BaseTempDir, taskID.String())
+
+	info, err := os.Stat(tempDir)
+	if err == nil {
+		if info.IsDir() {
+			return tempDir, nil
+		}
+		return "", fmt.Errorf("path %s exists but is not a directory", tempDir)
+	}
+	if !os.IsNotExist(err) {
+		return "", fmt.Errorf("failed to stat path %s: %w", tempDir, err)
+	}
+
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create archive dir: %w", err)
+		return "", fmt.Errorf("failed to create archive dir %s: %w", tempDir, err)
 	}
 	return tempDir, nil
 }

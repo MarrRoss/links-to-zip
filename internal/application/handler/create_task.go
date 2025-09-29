@@ -2,7 +2,10 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	exceptionAppl "workmate_tz/internal/application/exception"
 	exceptionDom "workmate_tz/internal/domain/exception"
@@ -93,5 +96,30 @@ func (h *AppHandler) CreateTask(
 		return model.ID{}, fileErrors, err
 	}
 	h.taskStorage.PrintAllTasks()
+	//archiveDir, err := MakeArchiveDir(newTask.ID)
+	//if err != nil {
+	//	h.observer.Logger.Error().Err(err).Msg("failed to create archive directory")
+	//	return newTask.ID, fileErrors, err
+	//}
+	//if err := WriteTaskStructure(archiveDir, newTask); err != nil {
+	//	h.observer.Logger.Error().Err(err).Msg("failed to write task_structure.json")
+	//	return newTask.ID, fileErrors, err
+	//}
 	return newTask.ID, fileErrors, nil
+}
+
+func WriteTaskStructure(archiveDir string, newTask *model.Task) error {
+	fileName := "task_structure.json"
+	filePath := filepath.Join(archiveDir, fileName)
+
+	data, err := json.MarshalIndent(newTask, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal task to JSON: %w", err)
+	}
+
+	if err := os.WriteFile(filePath, data, 0o644); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", filePath, err)
+	}
+
+	return nil
 }
