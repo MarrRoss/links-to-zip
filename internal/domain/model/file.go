@@ -52,15 +52,40 @@ func CreateFileName(link string, parsedLink url.URL, id ID) string {
 	return base
 }
 
+func (file *TaskFile) SetStatus(status string) error {
+	//if file.EndedAt != nil {
+	//	return domain.ErrFileIsDeleted
+	//}
+	if status != StatusProcessing && status != StatusFinished && status != StatusError {
+		return exception.ErrInvalidStatus
+	}
+	file.Status = status
+
+	now := time.Now()
+	file.UpdatedAt = now
+	if status == StatusFinished || status == StatusError {
+		file.EndedAt = &now
+	}
+	return nil
+}
+
+func (file *TaskFile) IncrementAttemptCount() {
+	//if file.EndedAt != nil {
+	//	return domain.ErrFileIsDeleted
+	//}
+	file.AttemptCount++
+	file.UpdatedAt = time.Now()
+}
+
 func (file *TaskFile) SetError(err string) error {
 	//if file.EndedAt != nil {
 	//	return domain.ErrFileIsDeleted
 	//}
-	if err == "" {
-		return exception.ErrInvalidFileError
-	}
+	//if err == "" {
+	//	return exception.ErrInvalidFileError
+	//}
 	file.Error = err
-	file.Status = StatusError
+	//file.Status = StatusError
 	file.UpdatedAt = time.Now()
 	return nil
 }

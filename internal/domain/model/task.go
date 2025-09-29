@@ -10,6 +10,7 @@ type Task struct {
 	Name        *string
 	Status      string
 	Files       []ID
+	Errors      []string
 	ArchivePath *string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -24,6 +25,7 @@ func NewTask(name *string, fileIDs []ID) (*Task, error) {
 		Name:        name,
 		Status:      StatusCreated,
 		Files:       fileIDs,
+		Errors:      []string{},
 		ArchivePath: nil,
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -37,7 +39,7 @@ func (task *Task) SetStatus(status string) error {
 	//	return domain.ErrTaskIsDeleted
 	//}
 	if status != StatusProcessing && status != StatusFinished && status != StatusError {
-		return exception.ErrInvalidTaskStatus
+		return exception.ErrInvalidStatus
 	}
 	task.Status = status
 
@@ -47,6 +49,11 @@ func (task *Task) SetStatus(status string) error {
 		task.EndedAt = &now
 	}
 	return nil
+}
+
+func (task *Task) SetError(err string) {
+	task.Errors = append(task.Errors, err)
+	task.UpdatedAt = time.Now()
 }
 
 func (task *Task) SetArchivePath(path string) error {

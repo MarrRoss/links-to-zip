@@ -57,6 +57,14 @@ func (repo *FileRepositoryImpl) GetFiles(
 	return foundFiles, notFoundIDs, nil
 }
 
+func (repo *FileRepositoryImpl) UpdateFile(
+	ctx context.Context,
+	file *model.TaskFile,
+) error {
+	repo.files.Store(file.ID, file)
+	return nil
+}
+
 func (repo *FileRepositoryImpl) PrintAllFiles() {
 	repo.files.Range(func(key, value any) bool {
 		file, ok := value.(*model.TaskFile)

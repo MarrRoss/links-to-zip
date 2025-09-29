@@ -32,7 +32,7 @@ func (h *AppHandler) CreateTask(
 	var g errgroup.Group
 	var mu sync.Mutex
 
-	filesIDs := make([]model.ID, len(cmd.Files))
+	filesIDs := make([]model.ID, 0, len(cmd.Files))
 	var fileErrors []exceptionAppl.FileError
 
 	for _, file := range cmd.Files {
@@ -73,19 +73,21 @@ func (h *AppHandler) CreateTask(
 			return nil
 		})
 	}
+
 	if len(filesIDs) == 0 {
+		h.observer.Logger.Error().Msg("no valid links to create task")
 		return model.ID{}, fileErrors, fmt.Errorf("no valid links to create task")
 	}
 
 	h.fileStorage.PrintAllFiles()
 	newTask, err := model.NewTask(cmd.TaskName, filesIDs)
 	if err != nil {
-		h.observer.Logger.Trace().Err(err).Msg("failed to create domain task")
+		h.observer.Logger.Error().Err(err).Msg("failed to create domain task")
 		return model.ID{}, fileErrors, err
 	}
 	err = h.taskStorage.CreateTask(ctx, newTask)
 	if err != nil {
-		h.observer.Logger.Trace().Err(err).Msg("failed to add task to storage")
+		h.observer.Logger.Error().Err(err).Msg("failed to add task to storage")
 		return model.ID{}, fileErrors, err
 	}
 	h.taskStorage.PrintAllTasks()

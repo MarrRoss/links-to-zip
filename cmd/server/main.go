@@ -57,6 +57,7 @@ func main() {
 	}))
 
 	app.Post("/tasks", presentHandler.CreateTask)
+	app.Get("/tasks/:id/short_status", presentHandler.GetTaskShortStatus)
 	app.Get("/tasks/:id/status", presentHandler.GetTaskStatus)
 	app.Get("/tasks/:id/archive", presentHandler.GetTaskArchive)
 
